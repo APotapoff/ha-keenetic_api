@@ -87,12 +87,12 @@ LIST_INTERFACES = [
 
 class Router:
     def __init__(
-        self, 
-        session: aiohttp.ClientSession, 
-        username="admin", 
-        password="admin", 
-        host="192.168.1.1", 
-        port: int = 80, 
+        self,
+        session: aiohttp.ClientSession,
+        username="admin",
+        password="admin",
+        host="192.168.1.1",
+        port: int = 80,
         ssl: bool | None = False,
         ):
         self._session = session
@@ -108,6 +108,7 @@ class Router:
         self._hw_type = ""
         self._hw_id = ""
         self._name_device = ""
+        self._usb = []
 
     @property
     def mac(self):
@@ -127,6 +128,9 @@ class Router:
     @property
     def name_device(self):
         return self._name_device
+    @property
+    def usb(self):
+        return self._usb
 
 
     async def async_setup_obj(self):
@@ -143,6 +147,9 @@ class Router:
 
         data_show_system_mode = await self.show_system_mode()
         self._hw_type = data_show_system_mode["active"]
+
+        data_show_rc_system = await self.show_rc_system()
+        self._usb = data_show_rc_system.get('usb', [])
 
         if self._hw_type == "router":
             # data_show_rc_interface_ip_global = await self.show_rc_interface_ip_global()
@@ -253,7 +260,7 @@ class Router:
         interface_wifi = {}
         for interface, interf in interfaces.items():
             if (
-                interf.get("authentication", False) 
+                interf.get("authentication", False)
                 and interf.get("authentication").get("wpa-psk", False)
                 and interf.get("authentication").get("wpa-psk").get("psk", False)
                 ):
@@ -284,6 +291,9 @@ class Router:
 
     async def show_rc_interface_ip_global(self):
         return await self.api("get", f"/rci/show/rc/interface/ip/global")
+
+    async def show_rc_system(self):
+        return await self.api("get", f"/rci/show/rc/system")
 
     async def ip_hotspot_host_list(self):
         return await self.api("get", "/rci/ip/hotspot/host")
@@ -353,7 +363,9 @@ class Router:
         data_json_send.append({"show": {"associations": {}}})
         data_json_send.append({"show": {"rc": {"system": {}}}})
         data_json_send.append({"show": {"rc": {"ip": {"http": {}}}}})
-        data_json_send.append({"show": {"media": {}}})
+
+        if self.usb:
+            data_json_send.append({"show": {"media": {}}})
 
         if self.hw_type == "router":
             data_json_send.append({"show": {"ip": {"hotspot": {}}}})
@@ -368,7 +380,7 @@ class Router:
         show_associations = full_info_other[2]['show']['associations']
         show_rc_system_usb = full_info_other[3]['show']['rc']['system'].get('usb', [])
         show_rc_ip_http = full_info_other[4]['show']['rc']['ip']['http']
-        show_media = full_info_other[5]['show'].get('media', {})
+        show_media = full_info_other[5]['show'].get('media', {}) if self.usb else {}
 
         show_ip_hotspot = {}
         show_rc_ip_static = {}
@@ -380,18 +392,18 @@ class Router:
             data_show_ip_hotspot = full_info_other[6]['show']['ip']['hotspot']['host']
             for hotspot in data_show_ip_hotspot:
                 show_ip_hotspot[hotspot["mac"]] = DataDevice(
-                    hotspot.get('mac'), 
-                    hotspot.get('name'), 
-                    hotspot.get('hostname'), 
-                    hotspot.get('ip'), 
-                    hotspot.get('active'), 
+                    hotspot.get('mac'),
+                    hotspot.get('name'),
+                    hotspot.get('hostname'),
+                    hotspot.get('ip'),
+                    hotspot.get('active'),
                     hotspot.get('interface', {"id": None}).get('id'),
-                    hotspot.get('uptime'), 
-                    hotspot.get('rssi'), 
-                    hotspot.get('rxbytes'), 
-                    hotspot.get('txbytes'), 
+                    hotspot.get('uptime'),
+                    hotspot.get('rssi'),
+                    hotspot.get('rxbytes'),
+                    hotspot.get('txbytes'),
                 )
-            
+
             priority_interface = full_info_other[7]['show']['rc']['interface']['ip']['global']
 
             data_show_rc_ip_static = full_info_other[8]['show']['rc']['ip']['static']
@@ -399,15 +411,15 @@ class Router:
                 nm_pfrw = port_frw.get('comment', port_frw.get('index'))
                 nm_pfrw = nm_pfrw if nm_pfrw != "" else port_frw.get('index')
                 show_rc_ip_static[port_frw["index"]] = DataPortForwarding(
-                    nm_pfrw, 
-                    port_frw.get('interface'), 
-                    port_frw.get('protocol'), 
-                    port_frw.get('port'), 
-                    port_frw.get('end-port', port_frw.get('port')), 
-                    port_frw.get('to-host'), 
-                    port_frw.get('index'), 
-                    port_frw.get('comment', None), 
-                    port_frw.get('disable', False), 
+                    nm_pfrw,
+                    port_frw.get('interface'),
+                    port_frw.get('protocol'),
+                    port_frw.get('port'),
+                    port_frw.get('end-port', port_frw.get('port')),
+                    port_frw.get('to-host'),
+                    port_frw.get('index'),
+                    port_frw.get('comment', None),
+                    port_frw.get('disable', False),
                 )
 
             data_show_ip_hotspot_policy = full_info_other[9]['show']['rc']['ip']['hotspot']['host']
@@ -418,10 +430,10 @@ class Router:
 
         return KeeneticFullData(
             show_system,
-            show_ip_hotspot, 
-            show_interface, 
-            show_rc_ip_static, 
-            show_associations, 
+            show_ip_hotspot,
+            show_interface,
+            show_rc_ip_static,
+            show_associations,
             show_ip_hotspot_policy,
             priority_interface,
             show_rc_ip_http,
