@@ -357,39 +357,64 @@ class Router:
         return stat_interface
 
     async def custom_request(self):
-        data_json_send=[]
-        data_json_send.append({"show": {"system": {}}},)
-        data_json_send.append({"show": {"interface": {}}})
-        data_json_send.append({"show": {"associations": {}}})
-        data_json_send.append({"show": {"rc": {"system": {}}}})
-        data_json_send.append({"show": {"rc": {"ip": {"http": {}}}}})
-
-        if self.usb:
-            data_json_send.append({"show": {"media": {}}})
+        requests_config = [
+            # (запрос, путь_извлечения, условие, значение_по_умолчанию)
+            ({"show": {"system": {}}}, ["show", "system"], None, {}),
+            ({"show": {"interface": {}}}, ["show", "interface"], None, {}),
+            ({"show": {"associations": {}}}, ["show", "associations"], None, {}),
+            ({"show": {"rc": {"system": {}}}}, ["show", "rc", "system"], None, {}),
+            ({"show": {"rc": {"ip": {"http": {}}}}}, ["show", "rc", "ip", "http"], None, {}),
+            ({"show": {"media": {}}}, ["show", "media"], lambda: self.usb, {})
+        ]
 
         if self.hw_type == "router":
-            data_json_send.append({"show": {"ip": {"hotspot": {}}}})
-            data_json_send.append({"show": {"rc": {"interface": {"ip": {"global": {}}}}}})
-            data_json_send.append({"show": {"rc": {"ip": {"static": {}}}}})
-            data_json_send.append({"show": {"rc": {"ip": {"hotspot": {}}}}})
+            requests_config.extend([
+                ({"show": {"ip": {"hotspot": {}}}}, ["show", "ip", "hotspot"], None, {}),
+                ({"show": {"rc": {"interface": {"ip": {"global": {}}}}}}, ["show", "rc", "interface", "ip", "global"], None, {}),
+                ({"show": {"rc": {"ip": {"static": {}}}}}, ["show", "rc", "ip", "static"], None, {}),
+                ({"show": {"rc": {"ip": {"hotspot": {}}}}}, ["show", "rc", "ip", "hotspot"], None, {})
+            ])
+
+        data_json_send = [req for req, _, condition, _ in requests_config if condition is None or condition()]
 
         full_info_other = await self.api("post", "/rci/", json=data_json_send)
+        
+        # Функция для извлечения данных
+        def extract_data(response, path):
+            current = response
+            for key in path:
+                if isinstance(current, dict) and key in current:
+                    current = current[key]
+                else:
+                    return None
+            return current
+        
+        # Извлекаем данные
+        results = {}
+        for i, (_, path, condition, default) in enumerate(requests_config):
+            if i < len(full_info_other) and (condition is None or condition()):
+                result = extract_data(full_info_other[i], path)
+                if result is not None:
+                    var_name = "_".join(path).replace("show_", "")
+                    results[var_name] = result
+            else:
+                var_name = "_".join(path).replace("show_", "")
+                results[var_name] = default
 
-        show_system = full_info_other[0]['show']['system']
-        show_interface = full_info_other[1]['show']['interface']
-        show_associations = full_info_other[2]['show']['associations']
-        show_rc_system_usb = full_info_other[3]['show']['rc']['system'].get('usb', [])
-        show_rc_ip_http = full_info_other[4]['show']['rc']['ip']['http']
-        show_media = full_info_other[5]['show'].get('media', {}) if self.usb else {}
+        show_system = results.get('system', {})
+        show_interface = results.get('interface', {})
+        show_associations = results.get('associations', {})
+        show_rc_system_usb = results.get('rc_system', {}).get('usb', [])
+        show_rc_ip_http = results.get('rc_ip_http', {})
+        show_media = results.get('media', {}) if self.usb else {}
 
         show_ip_hotspot = {}
         show_rc_ip_static = {}
         show_ip_hotspot_policy = {}
         priority_interface = {}
 
-
         if self.hw_type == "router":
-            data_show_ip_hotspot = full_info_other[6]['show']['ip']['hotspot']['host']
+            data_show_ip_hotspot = results.get('ip_hotspot', {}).get('host', {})
             for hotspot in data_show_ip_hotspot:
                 show_ip_hotspot[hotspot["mac"]] = DataDevice(
                     hotspot.get('mac'),
@@ -404,9 +429,9 @@ class Router:
                     hotspot.get('txbytes'),
                 )
 
-            priority_interface = full_info_other[7]['show']['rc']['interface']['ip']['global']
+            priority_interface = results.get('rc_interface_ip_global', {})
 
-            data_show_rc_ip_static = full_info_other[8]['show']['rc']['ip']['static']
+            data_show_rc_ip_static = results.get('rc_ip_static', {})
             for port_frw in data_show_rc_ip_static:
                 nm_pfrw = port_frw.get('comment', port_frw.get('index'))
                 nm_pfrw = nm_pfrw if nm_pfrw != "" else port_frw.get('index')
@@ -422,7 +447,7 @@ class Router:
                     port_frw.get('disable', False),
                 )
 
-            data_show_ip_hotspot_policy = full_info_other[9]['show']['rc']['ip']['hotspot']['host']
+            data_show_ip_hotspot_policy = results.get('rc_ip_hotspot', {}).get('host', {})
             for hotspot_pl in data_show_ip_hotspot_policy:
                 show_ip_hotspot_policy[hotspot_pl["mac"]] = hotspot_pl
 
