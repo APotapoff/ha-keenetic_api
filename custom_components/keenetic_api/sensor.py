@@ -68,7 +68,7 @@ def ind_wan_ip_adress(fdata: KeeneticFullData):
         for row in priority_interface:
             if show_interface[row]["connected"] == "yes":
                 if row.startswith('Wireguard'):
-                    return show_interface[row]["wireguard"]["peer"][0]["remote"]
+                    return show_interface[row]["wireguard"]["peer"][0].get("remote-endpoint-address") or show_interface[row]["wireguard"]["peer"][0].get("remote") or "-"
                 else:
                     return show_interface[row]["address"]
     except Exception as ex:
