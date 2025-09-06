@@ -50,6 +50,7 @@ class KeeneticRouterCoordinator(DataUpdateCoordinator):
         _errr = None
         try:
             full_data = await self.router.custom_request()
+            _LOGGER.debug(f"{self.router.mac} _async_update_data full_data {full_data}")
         except Exception as err:
             _LOGGER.debug(f"{self.router.mac} UpdateFailed _async_update_data (err {err})")
             _errr = err
