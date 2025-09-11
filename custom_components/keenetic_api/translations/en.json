@@ -46,35 +46,45 @@
     "services": {
       "request_api": {
         "name": "Execute request.",
+        "description": "Execute request.",
         "fields": {
           "device_id": {
-            "name": "Device:"
+            "name": "Device:",
+            "description": "Device."
           },
           "entry_id": {
-            "name": "Integration:"
+            "name": "Integration:",
+            "description": "Integration."
           },
           "method": {
-            "name": "Method:"
+            "name": "Method:",
+            "description": "Method."
           },
           "endpoint": {
-            "name": "Point API:"
+            "name": "Point API:",
+            "description": "Point API."
           },
           "data_json": {
-            "name": "Data:"
+            "name": "Data:",
+            "description": "Data."
           }
         }
       },
       "backup_router": {
         "name": "Create backup.",
+        "description": "Create backup.",
         "fields": {
           "entry_id": {
-            "name": "Integration:"
+            "name": "Integration:",
+            "description": "Integration."
           },
           "folder": {
-            "name": "The folder to save:"
+            "name": "The folder to save:",
+            "description": "The folder to save."
           },
           "type": {
-            "name": "Type backup:"
+            "name": "Type backup:",
+            "description": "Type backup."
           }
         }
       }

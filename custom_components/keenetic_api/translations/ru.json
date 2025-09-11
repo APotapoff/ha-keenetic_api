@@ -44,35 +44,45 @@
   "services": {
     "request_api": {
       "name": "Выполнить запрос.",
+      "description": "Выполнить запрос.",
       "fields": {
         "device_id": {
-          "name": "Устройство:"
+          "name": "Устройство:",
+          "description": "Устройство для выполнения запроса."
         },
         "entry_id": {
-          "name": "Интеграция:"
+          "name": "Интеграция:",
+          "description": "Интеграция для выполнения запроса."
         },
         "method": {
-          "name": "Метод:"
+          "name": "Метод:",
+          "description": "Метод для выполнения запроса."
         },
         "endpoint": {
-          "name": "Точка API:"
+          "name": "Точка API:",
+          "description": "Точка API для выполнения запроса."
         },
         "data_json": {
-          "name": "Данные:"
+          "name": "Данные:",
+          "description": "Данные для выполнения запроса."
         }
       }
     },
     "backup_router": {
       "name": "Создать backup.",
+      "description": "Создать backup.",
       "fields": {
         "entry_id": {
-          "name": "Интеграция:"
+          "name": "Интеграция:",
+          "description": "Интеграция."
         },
         "folder": {
-          "name": "Папка для сохранения:"
+          "name": "Папка для сохранения:",
+          "description": "Папка для сохранения."
         },
         "type": {
-          "name": "Тип backup:"
+          "name": "Тип backup:",
+          "description": "Тип backup."
         }
       }
     }
