@@ -63,6 +63,7 @@ class DataRcInterface():
     rename: str
     description: str
 
+CONGIG_SAVE = {"system": {"configuration": {"save": {}}}}
 
 INTERFACES_WIFI_NAME = {
     "WifiMaster0": "WiFi %s 2.4G",
@@ -314,7 +315,13 @@ class Router:
         return await self.api("post", "/rci/ip/hotspot/host", data_send)
 
     async def turn_on_off_interface(self, interface: str, state: str):
-        return await self.api("post", f"/rci/interface/{interface}", {state: "true"})
+        data_send = []
+        data_send.append({"interface": {"name": interface, state: True}})
+        if state == "up" and interface.startswith("WifiMaster") and "/" in interface:
+            # Сделано как в вебке keeneticа для включения WiFi
+            data_send.append({"interface": {"name": interface.split("/")[0], state: True}})
+        data_send.append(CONGIG_SAVE)
+        return await self.api("post", f"/rci/", data_send)
 
     async def turn_on_off_port_forwarding(self, port_forwarding: str, state: bool):
         data_send = [
@@ -326,7 +333,7 @@ class Router:
                     }
                 }
             },
-            {"system": {"configuration": {"save": {}}}}
+            CONGIG_SAVE
         ]
         return await self.api("post", f"/rci/", data_send)
 
@@ -366,7 +373,7 @@ class Router:
 
     async def custom_request(self):
         data_json_send=[]
-        data_json_send.append({"show": {"system": {}}},)
+        data_json_send.append({"show": {"system": {}}})
         data_json_send.append({"show": {"interface": {}}})
         data_json_send.append({"show": {"associations": {}}})
         data_json_send.append({"show": {"rc": {"system": {}}}})
