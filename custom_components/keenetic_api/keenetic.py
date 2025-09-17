@@ -345,6 +345,15 @@ class Router:
         data_send = {"port": port, "power": {"shutdown": not state}}
         return await self.api("post", f"/rci/system/usb", data_send)
 
+    async def set_clients_idle_timeout_wifi(self, interface: str, timeout: int):
+        if not (60 <= timeout <= 2147483646):
+            raise ValueError(f"Value {timeout} must be in the range from 60 to 2147483646")
+        data_send = [
+            {"interface": {interface: {"idle-timeout": timeout}}},
+            CONGIG_SAVE
+        ]
+        return await self.api("post", f"/rci/", data_send)
+
     def data_parser(self, data):
         new_data = {}
         data = data.replace('\n\t', '').replace('\n', '')
