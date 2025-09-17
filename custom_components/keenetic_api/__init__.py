@@ -58,6 +58,7 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
     Platform.DEVICE_TRACKER,
     Platform.SWITCH,
+    Platform.NUMBER,
 ]
 
 _LOGGER = logging.getLogger(__name__)
