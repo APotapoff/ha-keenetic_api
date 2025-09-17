@@ -159,7 +159,7 @@ class KeeneticRouterRcInterfaceCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=f"{DOMAIN}-{self._host}-rc-interface",
-            update_interval=timedelta(minutes=update_interval),
+            update_interval=timedelta(seconds=update_interval),
         )
 
     async def _async_update_data(self):
