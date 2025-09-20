@@ -172,7 +172,14 @@ class KeeneticOptionsFlowHandler(OptionsFlowWithReload):
                         default=self.config_entry.options.get(
                             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                         ),
-                    ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL))
+                    ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
+                    vol.Optional(
+                        CONF_BACKUP_TYPE_FILE,
+                        default=self.config_entry.options.get(CONF_BACKUP_TYPE_FILE, DEFAULT_BACKUP_TYPE_FILE),
+                    ): cv.multi_select([
+                        "config",
+                        "firmware",
+                    ]),
                 }
             ),
             last_step=False,
