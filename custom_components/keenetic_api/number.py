@@ -43,6 +43,7 @@ async def async_setup_entry(
 
 class KeeneticClientsIdleTimeoutWifiNumber(CoordinatorEntity[KeeneticRouterRcInterfaceCoordinator], NumberEntity):
 
+    _attr_entity_registry_enabled_default = False
     _attr_has_entity_name = True
     _attr_translation_key = "clients_idle_timeout_wifi"
     _attr_entity_category = EntityCategory.CONFIG
