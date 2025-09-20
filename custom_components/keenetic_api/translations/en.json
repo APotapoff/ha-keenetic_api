@@ -171,6 +171,11 @@
         "power_usb": {
           "name": "USB power port {number}"
         }
+      },
+      "number": {
+        "clients_idle_timeout_wifi": {
+          "name": "Clients Idle Timeout {name_interface}"
+        }
       }
     }
 }
