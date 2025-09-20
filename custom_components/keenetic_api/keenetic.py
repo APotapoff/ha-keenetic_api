@@ -62,12 +62,17 @@ class DataRcInterface():
     active: str
     rename: str
     description: str
+    idle_timeout: int
 
 CONGIG_SAVE = {"system": {"configuration": {"save": {}}}}
 
 INTERFACES_WIFI_NAME = {
     "WifiMaster0": "WiFi %s 2.4G",
     "WifiMaster1": "WiFi %s 5G"
+}
+INTERFACES_WIFI_NAME_LIST = {
+    "WifiMaster0": "WiFi 2.4G",
+    "WifiMaster1": "WiFi 5G"
 }
 
 LIST_INTERFACES = [
@@ -276,10 +281,12 @@ class Router:
                 psw = interf["authentication"]["wpa-psk"]["psk"]
             else:
                 psw = None
-            if not interf.get('ssid', False):
-                nm_inerface = interface
-            else:
+            if interf.get('ssid', False):
                 nm_inerface = (f"{INTERFACES_WIFI_NAME.get(interface.split('/')[0], interface)}" % interf.get('ssid', "nameless"))
+            elif "WifiMaster" in interface:
+                nm_inerface = (f"{INTERFACES_WIFI_NAME_LIST.get(interface.split('/')[0], interface)}")
+            else:
+                nm_inerface = interface
             interface_wifi[interface] = DataRcInterface(
                                                         interface,
                                                         nm_inerface,
@@ -289,6 +296,7 @@ class Router:
                                                         interf.get("up", False),
                                                         interf.get("rename", None),
                                                         interf.get("description", None),
+                                                        interf.get('idle-timeout', {}).get('idle-timeout', None),
             )
         return interface_wifi
 
@@ -344,6 +352,15 @@ class Router:
     async def turn_on_off_usb(self, state: bool, port: int):
         data_send = {"port": port, "power": {"shutdown": not state}}
         return await self.api("post", f"/rci/system/usb", data_send)
+
+    async def set_clients_idle_timeout_wifi(self, interface: str, timeout: int):
+        if not (60 <= timeout <= 2147483646):
+            raise ValueError(f"Value {timeout} must be in the range from 60 to 2147483646")
+        data_send = [
+            {"interface": {interface: {"idle-timeout": int(timeout)}}},
+            CONGIG_SAVE
+        ]
+        return await self.api("post", f"/rci/", data_send)
 
     def data_parser(self, data):
         new_data = {}
