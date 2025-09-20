@@ -36,7 +36,8 @@ async def async_setup_entry(
         for interface in interfaces:
             interface_wifi = interfaces[interface]
             if (interface_wifi.ssid and
-                (interface_wifi.interface in ['WifiMaster0', 'WifiMaster1'])):
+                (interface.startswith('WifiMaster')) and
+                ('AccessPoint' in interface)):
                     images.append(
                         KeeneticQrWiFiImageEntity(
                             coordinator,
@@ -94,10 +95,10 @@ class KeeneticQrWiFiImageEntity(CoordinatorEntity[KeeneticRouterRcInterfaceCoord
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         if (
-            self._interface_wifi.ssid != self.coordinator.data[self._interface_wifi["id"]].ssid
-            or self._interface_wifi.password != self.coordinator.data[self._interface_wifi["id"]].password
+            self._interface_wifi.ssid != self.coordinator.data[self._interface_wifi.id].ssid
+            or self._interface_wifi.password != self.coordinator.data[self._interface_wifi.id].password
         ):
-            self._interface_wifi = self.coordinator.data[self._interface_wifi['id']]
+            self._interface_wifi = self.coordinator.data[self._interface_wifi.id]
             self._attr_image_last_updated = dt_util.utcnow()
         super()._handle_coordinator_update()
 

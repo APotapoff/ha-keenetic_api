@@ -56,7 +56,6 @@ class DataPortForwarding():
 class DataRcInterface():
     id: str
     name_interface: str
-    interface: str
     ssid: str
     password: str
     active: str
@@ -68,11 +67,11 @@ CONGIG_SAVE = {"system": {"configuration": {"save": {}}}}
 
 INTERFACES_WIFI_NAME = {
     "WifiMaster0": "WiFi %s 2.4G",
-    "WifiMaster1": "WiFi %s 5G"
+    "WifiMaster1": "WiFi %s 5G",
 }
 INTERFACES_WIFI_NAME_LIST = {
     "WifiMaster0": "WiFi 2.4G",
-    "WifiMaster1": "WiFi 5G"
+    "WifiMaster1": "WiFi 5G",
 }
 
 LIST_INTERFACES = [
@@ -88,7 +87,14 @@ LIST_INTERFACES = [
     "OpenVPN",
     "EoIP",
     "TunnelSixInFour",
-    # "WifiStation",
+    "SSTPEthernet",
+    "Proxy",
+    "IPIP",
+    "IKE",
+    "Gre",
+    "MapT",
+    "DsLite",
+    "UsbQmi",
 ]
 LIST_INTERFACES_PUBLIC = [
     "GigabitEthernet",
@@ -273,6 +279,7 @@ class Router:
         interfaces = await self.api("get", "/rci/show/rc/interface")
         interface_wifi = {}
         for interface, interf in interfaces.items():
+            interface_main = interface.split('/')[0]
             if (
                 interf.get("authentication", False)
                 and interf.get("authentication").get("wpa-psk", False)
@@ -282,15 +289,14 @@ class Router:
             else:
                 psw = None
             if interf.get('ssid', False):
-                nm_inerface = (f"{INTERFACES_WIFI_NAME.get(interface.split('/')[0], interface)}" % interf.get('ssid', "nameless"))
+                nm_inerface = (f"{INTERFACES_WIFI_NAME.get(interface_main, interface)}" % interf.get('ssid', "nameless"))
             elif "WifiMaster" in interface:
-                nm_inerface = (f"{INTERFACES_WIFI_NAME_LIST.get(interface.split('/')[0], interface)}")
+                nm_inerface = (f"{INTERFACES_WIFI_NAME_LIST.get(interface_main, interface)}")
             else:
                 nm_inerface = interface
             interface_wifi[interface] = DataRcInterface(
                                                         interface,
                                                         nm_inerface,
-                                                        interface.split('/')[0],
                                                         interf.get("ssid", False),
                                                         psw,
                                                         interf.get("up", False),

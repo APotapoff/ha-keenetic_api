@@ -33,7 +33,7 @@ POLICY_NOT_INTERNET: Final = "not_internet"
 
 CROUTER: Final = "client_router"
 
-DEFAULT_BACKUP_TYPE_FILE: Final = ["config"]
+DEFAULT_BACKUP_TYPE_FILE: Final = ["config", "firmware"]
 
 COUNT_REPEATED_REQUEST_FIREWARE: Final = 30
 TIMER_REPEATED_REQUEST_FIREWARE: Final = 0.3

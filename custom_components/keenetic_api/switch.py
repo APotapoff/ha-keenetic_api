@@ -62,8 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         interfaces = coordinator.data.show_interface
         for interface, data_interface in interfaces.items():
             if ((data_interface.get('usedby', False)
-                and (interface.startswith('WifiMaster0') 
-                    or interface.startswith('WifiMaster1')))):
+                and (interface.startswith('WifiMaster')))):
                 switchs.append(
                     KeeneticInterfaceSwitchEntity(
                         coordinator,

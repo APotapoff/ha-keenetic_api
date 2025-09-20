@@ -60,6 +60,11 @@
                     "on": "mdi:play-network"
                 }
             }
+        },
+        "number": {
+            "clients_idle_timeout_wifi": {
+                "default": "mdi:account-multiple-minus"
+            }
         }
     },
     "services": {
