@@ -31,7 +31,7 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id][COORD_RC_INTERFACE]
     images: list[ImageEntity] = []
 
-    if coordinator != None and entry.options.get("create_image_qr", False):
+    if coordinator.router.hw_type == "router":
         interfaces = coordinator.data
         for interface in interfaces:
             interface_wifi = interfaces[interface]
@@ -49,6 +49,7 @@ async def async_setup_entry(
 
 class KeeneticQrWiFiImageEntity(CoordinatorEntity[KeeneticRouterRcInterfaceCoordinator], ImageEntity):
 
+    _attr_entity_registry_enabled_default = False
     _attr_has_entity_name = True
     _attr_content_type = "image/png"
     _attr_translation_key = "qrwifi"

@@ -44,7 +44,6 @@ from .const import (
     CONF_CREATE_ALL_CLIENTS_POLICY,
     CONF_CLIENTS_SELECT_POLICY,
     CONF_CREATE_PORT_FRW,
-    CONF_CREATE_IMAGE_QR,
     CONF_SELECT_CREATE_DT,
     SCAN_INTERVAL_RC_INTERFACE,
 )
@@ -74,11 +73,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator_firmware = KeeneticRouterFirmwareCoordinator(hass, client, SCAN_INTERVAL_FIREWARE, entry)
     await coordinator_firmware.async_refresh()
 
-    if client.hw_type == "router":
-        coordinator_rc_interface = KeeneticRouterRcInterfaceCoordinator(hass, client, SCAN_INTERVAL_RC_INTERFACE, entry)
-        await coordinator_rc_interface.async_config_entry_first_refresh()
-    else:
-        coordinator_rc_interface = None
+
+    coordinator_rc_interface = KeeneticRouterRcInterfaceCoordinator(hass, client, SCAN_INTERVAL_RC_INTERFACE, entry)
+    await coordinator_rc_interface.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         CROUTER: client,
@@ -101,7 +98,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    coordinator_full = hass.data[DOMAIN][entry.entry_id][COORD_FULL]
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
         async_unload_services(hass)
@@ -145,12 +141,6 @@ def remove_entities_or_devices(hass, entry) -> None:
             entity.domain == "switch" 
             and entity.translation_key == "port_forwarding"
             and not entry.options.get(CONF_CREATE_PORT_FRW, False) 
-        ):
-            delete_ent = True
-        elif (
-            entity.domain == "image" 
-            and entity.translation_key == "qrwifi"
-            and not entry.options.get(CONF_CREATE_IMAGE_QR, False) 
         ):
             delete_ent = True
         elif (

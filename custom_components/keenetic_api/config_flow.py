@@ -37,7 +37,6 @@ from .const import (
     MIN_SCAN_INTERVAL,
     CONF_CLIENTS_SELECT_POLICY,
     CONF_CREATE_ALL_CLIENTS_POLICY,
-    CONF_CREATE_IMAGE_QR,
     CONF_CREATE_DT,
     CONF_CREATE_PORT_FRW,
     DEFAULT_BACKUP_TYPE_FILE,
@@ -115,12 +114,6 @@ class KeeneticOptionsFlowHandler(OptionsFlowWithReload):
                             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                         ),
                     ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
-                    vol.Optional(
-                        CONF_CREATE_IMAGE_QR,
-                        default=self.config_entry.options.get(
-                            CONF_CREATE_IMAGE_QR, False
-                        ),
-                    ): bool,
                     vol.Optional(
                         CONF_CREATE_ALL_CLIENTS_POLICY,
                         default=self.config_entry.options.get(

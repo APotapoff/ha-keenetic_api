@@ -16,7 +16,6 @@ COORD_RC_INTERFACE: Final = "coordinator_rc_interface"
 
 CONF_CLIENTS_SELECT_POLICY: Final = "cliens_select_policy"
 CONF_CREATE_ALL_CLIENTS_POLICY: Final = "create_entity_all_cliens_button_policy"
-CONF_CREATE_IMAGE_QR: Final = "create_image_qr"
 CONF_CREATE_PORT_FRW: Final = "create_entity_port_forwarding"
 CONF_BACKUP_TYPE_FILE: Final = "backup_type_file"
 
