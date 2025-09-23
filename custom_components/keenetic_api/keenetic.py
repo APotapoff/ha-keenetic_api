@@ -310,7 +310,7 @@ class Router:
                                                         interf.get("up", False),
                                                         interf.get("rename", None),
                                                         interf.get("description", None),
-                                                        interf.get('idle-timeout', {}).get('idle-timeout', None),
+                                                        interf.get('idle-timeout', {}).get('idle-timeout', 600),
             )
         return interface_wifi
 

@@ -29,8 +29,9 @@ async def async_setup_entry(
         interfaces = coordinator.data
         for interface in interfaces:
             interface_data = interfaces[interface]
-            if (interface_data.idle_timeout and
-                (interface.startswith('WifiMaster'))):
+            if (interface.startswith('WifiMaster') and
+                ('AccessPoint' not in interface) and
+                ('WifiStation' not in interface)):
                     numbers.append(
                         KeeneticClientsIdleTimeoutWifiNumber(
                             coordinator,
