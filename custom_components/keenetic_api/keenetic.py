@@ -26,6 +26,7 @@ class KeeneticFullData:
     show_rc_system_usb: dict[str, Any]
     show_media: dict[str, Any]
     stat_interface: dict[str, Any]
+    show_pingcheck: dict[str, Any]
 
 @dataclass
 class DataDevice():
@@ -62,6 +63,13 @@ class DataRcInterface():
     rename: str
     description: str
     idle_timeout: int
+
+@dataclass
+class DataPingCheck():
+    interface_name: str
+    status: str
+    # failcount: str
+    # successcount: str
 
 CONGIG_SAVE = {"system": {"configuration": {"save": {}}}}
 
@@ -407,6 +415,7 @@ class Router:
             data_json_send.append({"show": {"rc": {"interface": {"ip": {"global": {}}}}}})
             data_json_send.append({"show": {"rc": {"ip": {"static": {}}}}})
             data_json_send.append({"show": {"rc": {"ip": {"hotspot": {}}}}})
+            data_json_send.append({"show": {"ping-check": {}}})
 
         if self.usb:
             data_json_send.append({"show": {"media": {}}})
@@ -423,6 +432,7 @@ class Router:
         show_rc_ip_static = {}
         show_ip_hotspot_policy = {}
         priority_interface = {}
+        show_pingcheck = {}
 
         if self.hw_type == "router":
             data_show_ip_hotspot = full_info_other[5]['show']['ip']['hotspot']['host']
@@ -462,7 +472,18 @@ class Router:
             for hotspot_pl in data_show_ip_hotspot_policy:
                 show_ip_hotspot_policy[hotspot_pl["mac"]] = hotspot_pl
 
-            show_media = full_info_other[9]['show'].get('media', {}) if self.usb else {}
+            data_show_pingcheck = full_info_other[9]['show']['ping-check']['pingcheck']
+            for pingcheck in data_show_pingcheck:
+                if interfaces := pingcheck.get('interface', False):
+                    for interface in interfaces:
+                        interface_data = interfaces[interface]
+                        interface_name = self.request_interface[interface]
+                        show_pingcheck[interface] = DataPingCheck(
+                            interface_name,
+                            interface_data.get('status', 'not ready'),
+                        )
+
+            show_media = full_info_other[10]['show'].get('media', {}) if self.usb else {}
         else:
             show_media = full_info_other[5]['show'].get('media', {}) if self.usb else {}
 
@@ -480,4 +501,5 @@ class Router:
             show_rc_system_usb,
             show_media,
             stat_interface,
+            show_pingcheck,
             )

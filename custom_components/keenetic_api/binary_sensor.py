@@ -14,7 +14,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -22,6 +21,7 @@ from .const import (
     COORD_FULL,
 )
 from .coordinator import KeeneticRouterCoordinator
+from .keenetic import KeeneticFullData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,8 +29,9 @@ _LOGGER = logging.getLogger(__name__)
 @dataclass(frozen=True, kw_only=True)
 class KeeneticBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes Keenetic sensor entity."""
-    value_fn: Callable[[KeeneticRouterCoordinator], bool]
-    attributes_fn: Callable[[KeeneticRouterCoordinator], bool] | None = None
+    value_fn: Callable[[KeeneticRouterCoordinator, str], bool]
+    attributes_fn: Callable[[KeeneticRouterCoordinator, str], bool] | None = None
+    available_fn: Callable[[KeeneticFullData, str], bool] = lambda data, _: True
 
 
 BINARY_SENSOR_TYPES: dict[str, KeeneticBinarySensorEntityDescription] = {
@@ -44,6 +45,7 @@ BINARY_SENSOR_TYPES: dict[str, KeeneticBinarySensorEntityDescription] = {
         key="connected_to_interface",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         value_fn= lambda coordinator, obj_id: coordinator.data.show_interface[obj_id].get('connected', "no") == "yes",
+        available_fn=lambda data, obj_id: obj_id in data.show_interface,
     ),
     "connected_to_media": KeeneticBinarySensorEntityDescription(
         key="connected_to_media",
@@ -52,6 +54,12 @@ BINARY_SENSOR_TYPES: dict[str, KeeneticBinarySensorEntityDescription] = {
         attributes_fn=lambda coordinator, obj_id: {
             "media": coordinator.data.show_media.get(obj_id, None),
         },
+    ),
+    "interface_pingcheck": KeeneticBinarySensorEntityDescription(
+        key="interface_pingcheck",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn= lambda coordinator, obj_id: coordinator.data.show_pingcheck.get(obj_id, {}).status == "pass",
+        available_fn=lambda data, obj_id: obj_id in data.show_pingcheck,
     ),
 }
 
@@ -76,6 +84,15 @@ async def async_setup_entry(
                     BINARY_SENSOR_TYPES["connected_to_interface"],
                     interface,
                     new_name,
+                )
+            )
+    for pc_interface, pc_data_interface in coordinator.data.show_pingcheck.items():
+            binary_sensors.append(
+                KeeneticBinarySensorEntity(
+                    coordinator,
+                    BINARY_SENSOR_TYPES["interface_pingcheck"],
+                    pc_interface,
+                    pc_data_interface.interface_name,
                 )
             )
 
@@ -116,7 +133,7 @@ class KeeneticBinarySensorEntity(CoordinatorEntity[KeeneticRouterCoordinator], B
         if self.entity_description.key == "connected_to_router":
             return True
         else:
-            return self.coordinator.last_update_success
+            return (super().available and self.entity_description.available_fn(self.coordinator.data, self._obj_id))
 
     @property
     def extra_state_attributes(self) -> dict[str, str] | None:
