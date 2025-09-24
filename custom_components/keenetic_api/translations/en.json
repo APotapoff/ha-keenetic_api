@@ -158,7 +158,7 @@
           "name": "Status {name}"
         },
         "interface_pingcheck": {
-          "name": "PingCheck {name}"
+          "name": "{name} PingCheck"
         }
       },
       "switch": {

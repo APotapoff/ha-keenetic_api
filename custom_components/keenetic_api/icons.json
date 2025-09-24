@@ -59,6 +59,13 @@
                     "off": "mdi:play-network-outline",
                     "on": "mdi:play-network"
                 }
+            },
+            "interface_pingcheck": {
+                "default": "mdi:passport-remove",
+                "state": {
+                    "off": "mdi:passport-remove",
+                    "on": "mdi:passport-check"
+                }
             }
         },
         "number": {
