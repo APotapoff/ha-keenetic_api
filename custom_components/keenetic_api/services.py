@@ -11,6 +11,7 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.util.json import json_loads
 
 from .const import (
     DOMAIN,
@@ -65,12 +66,22 @@ def async_unload_services(hass: HomeAssistant) -> None:
 
 
 async def request_api(hass: HomeAssistant, entry_id: str, data: Mapping[str, Any]):
-    data_json = data.get("data_json", [])
+    data_json = parse_data_json(data.get("data_json", []))
     response = await hass.data[DOMAIN][entry_id][CROUTER].api(data["method"], data["endpoint"], data_json)
-    _LOGGER.debug(f'Services request_api response - {response}')
+    _LOGGER.debug(f'Services request_api endpoint - {data["endpoint"]}. data_json - {data_json}. response - {response}')
     return {"response": response}
 
 
 async def backup_router(hass: HomeAssistant, entry_id: str, data: Mapping[str, Any]):
     response = await hass.data[DOMAIN][entry_id][CROUTER].async_backup(data["folder"], data["type"])
     return {"response": "success"}
+
+
+def parse_data_json(data_json):
+    if not data_json:
+        return {}
+    if isinstance(data_json, dict):
+        return data_json
+    if isinstance(data_json, str):
+        return json_loads(data_json)
+    return {}
