@@ -66,7 +66,7 @@ def async_unload_services(hass: HomeAssistant) -> None:
 
 
 async def request_api(hass: HomeAssistant, entry_id: str, data: Mapping[str, Any]):
-    data_json = parse_data_json(data.get("data_json", []))
+    data_json = json_loads(data_json) if isinstance(data_json := data.get("data_json", []), str) else data_json
     response = await hass.data[DOMAIN][entry_id][CROUTER].api(data["method"], data["endpoint"], data_json)
     _LOGGER.debug(f'Services request_api endpoint - {data["endpoint"]}. data_json - {data_json}. response - {response}')
     return {"response": response}
@@ -75,13 +75,3 @@ async def request_api(hass: HomeAssistant, entry_id: str, data: Mapping[str, Any
 async def backup_router(hass: HomeAssistant, entry_id: str, data: Mapping[str, Any]):
     response = await hass.data[DOMAIN][entry_id][CROUTER].async_backup(data["folder"], data["type"])
     return {"response": "success"}
-
-
-def parse_data_json(data_json):
-    if not data_json:
-        return {}
-    if isinstance(data_json, dict):
-        return data_json
-    if isinstance(data_json, str):
-        return json_loads(data_json)
-    return {}
